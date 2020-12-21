@@ -37,7 +37,8 @@ class UNetInferenceAgent:
         Returns:
             3D NumPy array with prediction mask
         """
-        vol_padded = med_reshape(volume, new_shape=(volume.shape[0], self.patch_size, self.patch_size))
+        volume_norm = (volume - volume.mean()) / volume.std()
+        vol_padded = med_reshape(volume_norm, new_shape=(volume_norm.shape[0], self.patch_size, self.patch_size))
         return self.single_volume_inference(vol_padded)
 
     def single_volume_inference(self, volume):

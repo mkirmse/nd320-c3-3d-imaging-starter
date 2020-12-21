@@ -287,7 +287,7 @@ def run_inference(routing_folder : str, local_test: bool = False) -> None:
     pred_volumes = get_predicted_volumes(pred_label)
     # Create and save the report
     print("Creating and pushing report...")
-    report_save_path = r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section3/out/report"  # - for testing
+    report_save_path = r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section3/out/report.dcm"  # - for testing
     # TASK: create_report is not complete. Go and complete it.
     # STAND OUT SUGGESTION: save_report_as_dcm has some suggestions if you want to expand your
     # knowledge of DICOM format
