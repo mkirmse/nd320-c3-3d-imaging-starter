@@ -27,5 +27,5 @@ class TestUNetInferenceAgent(TestCase):
     def test_single_volume_inference(self):
         volume = self.data[0]['image']
         volume = volume[None]
-        self.inference_agent.single_volume_inference(volume[0])
-        pass # TODO add proper check
+        pred = self.inference_agent.single_volume_inference(volume[0])
+        self.assertEqual(3, len(pred.shape))

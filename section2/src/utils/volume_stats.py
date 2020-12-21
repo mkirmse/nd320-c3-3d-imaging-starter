@@ -26,8 +26,8 @@ def Dice3d(a, b):
     # you should already have it.
     # <YOUR CODE HERE>
 
-    inters = np.sum(a*b)
-    vol_sum = np.sum(a) + np.sum(b)
+    inters = np.sum((a>0)*(b>0))
+    vol_sum = np.sum((a>0)) + np.sum((b>0))
     return 2.*float(inters) / float(vol_sum)
 
 def Jaccard3d(a, b):
@@ -52,6 +52,6 @@ def Jaccard3d(a, b):
     # TASK: Write implementation of Jaccard similarity coefficient. Please do not use 
     # the Dice3D function from above to do the computation ;)
     # <YOUR CODE GOES HERE>
-    inters = np.sum(a*b)
+    inters = np.sum((a>0)*(b>0))
     union = np.count_nonzero(a + b)
     return float(inters) / float(union)

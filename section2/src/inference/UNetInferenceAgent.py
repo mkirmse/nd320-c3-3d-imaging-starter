@@ -69,6 +69,6 @@ class UNetInferenceAgent:
 
             prediction = self.model(img_slc_tensor)
             prediction_class = torch.argmax(prediction, dim=1)
-            slices.append(prediction_class.cpu().detach().numpy())
+            slices.append(prediction_class.cpu().detach().numpy()[0])
 
         return np.array(slices)

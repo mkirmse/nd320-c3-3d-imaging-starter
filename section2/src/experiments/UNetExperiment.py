@@ -37,6 +37,8 @@ class UNetExperiment:
         self._time_end = ""
         self.epoch = 0
         self.name = config.name
+        self.eval_only = config.eval_only
+        self.model_path = config.model_path
 
         # Create output folders
         dirname = f'{time.strftime("%Y-%m-%d_%H%M", time.gmtime())}_{self.name}'
@@ -65,6 +67,9 @@ class UNetExperiment:
         # Division of Medical Image Computing. It is quite complicated and works 
         # very well on this task. Feel free to explore it or plug in your own model
         self.model = UNet(num_classes=3)
+        if self.eval_only:
+            self.model.load_state_dict(torch.load(self.model_path, map_location=self.device))
+
         self.model.to(self.device)
 
         # We are using a standard cross-entropy loss since the model output is essentially

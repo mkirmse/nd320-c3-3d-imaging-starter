@@ -17,13 +17,16 @@ class Config:
     def __init__(self):
         self.name = "Basic_unet"
         self.root_dir = r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section1/out/TrainingSet"
-        self.n_epochs = 1
+        self.n_epochs = 10
         self.learning_rate = 0.0002
-        self.batch_size = 8
+        self.batch_size = 16
         self.patch_size = 64
         self.test_results_dir = "/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section2/out"
         self.val_split = 0.1
         self.test_split = 0.2
+        self.eval_only = False
+        # use model from path if eval only - for testing purposes
+        self.model_path = "/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section2/out/2020-12-21_1001_Basic_unet/model.pth"
 
 if __name__ == "__main__":
     # Get configuration
@@ -68,7 +71,8 @@ if __name__ == "__main__":
     del data
 
     # run training
-    exp.run()
+    if not c.eval_only:
+        exp.run()
 
     # prep and run testing
 
