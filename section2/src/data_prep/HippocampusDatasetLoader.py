@@ -12,7 +12,7 @@ from utils.utils import med_reshape
 
 def LoadHippocampusData(root_dir, y_shape, z_shape):
     '''
-    This function loads our dataset form disk into memory,
+    This function loads our dataset from disk into memory,
     reshaping output to common size
 
     Arguments:
@@ -26,8 +26,18 @@ def LoadHippocampusData(root_dir, y_shape, z_shape):
     image_dir = os.path.join(root_dir, 'images')
     label_dir = os.path.join(root_dir, 'labels')
 
+    # filters for meta files
     images = [f for f in listdir(image_dir) if (
         isfile(join(image_dir, f)) and f[0] != ".")]
+
+    # get data set max and min for normalization
+    max_vals = []
+    min_vals = []
+    for f in images:
+        image, _ = load(os.path.join(image_dir, f))
+        max_vals.append(image.max())
+        min_vals.append(image.min())
+    # quite high range => TODO move to EDA
 
     out = []
     for f in images:
@@ -40,6 +50,11 @@ def LoadHippocampusData(root_dir, y_shape, z_shape):
 
         # TASK: normalize all images (but not labels) so that values are in [0..1] range
         # <YOUR CODE GOES HERE>
+        # zscore normalization as recommended here: https://www.nature.com/articles/s41598-020-69298-z
+        # does not map to [0..1] but mean 0 and std 1, which seems to have advantages
+        # alternative version: fast ai hist scaling - see performance
+        image = (image - image.mean()) / image.std()
+
 
         # We need to reshape data since CNN tensors that represent minibatches
         # in our case will be stacks of slices and stacks need to be of the same size.
@@ -53,7 +68,7 @@ def LoadHippocampusData(root_dir, y_shape, z_shape):
         label = med_reshape(label, new_shape=(label.shape[0], y_shape, z_shape)).astype(int)
 
         # TASK: Why do we need to cast label to int?
-        # ANSWER: 
+        # ANSWER: Because that is what is expected by the loss function
 
         out.append({"image": image, "seg": label, "filename": f})
 

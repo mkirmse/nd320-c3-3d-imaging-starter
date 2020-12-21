@@ -1,6 +1,7 @@
 """
 Module for Pytorch dataset representations
 """
+import numpy as np
 
 import torch
 from torch.utils.data import Dataset
@@ -48,6 +49,16 @@ class SlicesDataset(Dataset):
         # Hint2: You can use None notation like so: arr[None, :] to add size-1 
         # dimension to a Numpy array
         # <YOUR CODE GOES HERE>
+        img_slice_np = self.data[slc[0]]['image'][slc[1]]
+        img_slice_np = img_slice_np[None, :]
+        img_slice_np = img_slice_np.astype(np.single)
+        img_slc_tensor = torch.from_numpy(img_slice_np)
+        sample['image'] = img_slc_tensor
+
+        lbl_slice_np = self.data[slc[0]]['seg'][slc[1]]
+        lbl_slice_np = lbl_slice_np[None, :]
+        lbl_slc_tensor = torch.from_numpy(lbl_slice_np)
+        sample['seg'] = lbl_slc_tensor
 
         return sample
 

@@ -3,6 +3,9 @@ This file contains code that will kick off training and testing processes
 """
 import os
 import json
+from typing import List, Tuple
+
+from sklearn.model_selection import train_test_split
 
 from experiments.UNetExperiment import UNetExperiment
 from data_prep.HippocampusDatasetLoader import LoadHippocampusData
@@ -13,18 +16,18 @@ class Config:
     """
     def __init__(self):
         self.name = "Basic_unet"
-        self.root_dir = r"YOUR DIRECTORY HERE"
-        self.n_epochs = 10
+        self.root_dir = r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section1/out/TrainingSet"
+        self.n_epochs = 1
         self.learning_rate = 0.0002
         self.batch_size = 8
         self.patch_size = 64
-        self.test_results_dir = "RESULTS GO HERE"
+        self.test_results_dir = "/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section2/out"
+        self.val_split = 0.1
+        self.test_split = 0.2
 
 if __name__ == "__main__":
     # Get configuration
 
-    # TASK: Fill in parameters of the Config class and specify directory where the data is stored and 
-    # directory where results will go
     c = Config()
 
     # Load data
@@ -49,6 +52,11 @@ if __name__ == "__main__":
     # the array with indices of training volumes to be used for training, validation 
     # and testing respectively.
     # <YOUR CODE GOES HERE>
+    train_ind, test_ind = train_test_split(list(keys), train_size = 1-c.test_split, test_size = c.test_split)
+    train_ind, val_ind = train_test_split(train_ind, train_size = 1-c.val_split, test_size = c.val_split)
+    split["train"] = train_ind
+    split["val"] = val_ind
+    split["test"] = test_ind
 
     # Set up and run experiment
     
@@ -57,7 +65,7 @@ if __name__ == "__main__":
 
     # You could free up memory by deleting the dataset
     # as it has been copied into loaders
-    # del dataset 
+    del data
 
     # run training
     exp.run()
