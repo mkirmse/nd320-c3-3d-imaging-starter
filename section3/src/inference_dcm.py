@@ -25,6 +25,8 @@ from PIL import ImageFont
 from PIL import ImageDraw
 
 from inference.UNetInferenceAgent import UNetInferenceAgent
+from section3.src.definitions import ROOT_DIR_SEC3
+
 
 def load_dicom_volume_as_numpy_from_list(dcmlist):
     """Loads a list of PyDicom objects a Numpy array.
@@ -95,8 +97,8 @@ def create_report(inference, header, orig_vol, pred_vol):
     pimg = Image.new("RGB", (1000, 1000))
     draw = ImageDraw.Draw(pimg)
 
-    header_font = ImageFont.truetype("assets/Roboto-Regular.ttf", size=40)
-    main_font = ImageFont.truetype("assets/Roboto-Regular.ttf", size=20)
+    header_font = ImageFont.truetype(os.path.join(ROOT_DIR_SEC3,"assets/Roboto-Regular.ttf"), size=40)
+    main_font = ImageFont.truetype(os.path.join(ROOT_DIR_SEC3,"assets/Roboto-Regular.ttf"), size=20)
 
     slice_nums = [orig_vol.shape[2]//3, orig_vol.shape[2]//2, orig_vol.shape[2]*3//4] # is there a better choice?
 
@@ -259,6 +261,56 @@ def os_command(command):
     # Uncomment this if running under Windows
     # os.system(command)
 
+
+def run_inference(routing_folder : str, local_test: bool = False) -> None:
+    # Find all subdirectories within the supplied directory. We assume that
+    # one subdirectory contains a full study
+    subdirs = [os.path.join(routing_folder, d) for d in os.listdir(routing_folder) if
+               os.path.isdir(os.path.join(routing_folder, d))]
+    # Get the latest directory
+    study_dir = sorted(subdirs, key=lambda dir: os.stat(dir).st_mtime, reverse=True)[0]
+    print(f"Looking for series to run inference on in directory {study_dir}...")
+    # TASK: get_series_for_inference is not complete. Go and complete it - done
+    volume, header = load_dicom_volume_as_numpy_from_list(get_series_for_inference(study_dir))
+    print(f"Found series of {volume.shape[2]} axial slices")
+    print("HippoVolume.AI: Running inference...")
+    # TASK: Use the UNetInferenceAgent class and model parameter file from the previous section - done
+    inference_agent = UNetInferenceAgent(
+        device="cpu",
+        parameter_file_path=r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section2/out/2020-12-21_1051_Basic_unet/model.pth")
+    # Run inference
+    # TASK: single_volume_inference_unpadded takes a volume of arbitrary size
+    # and reshapes y and z dimensions to the patch size used by the model before
+    # running inference. Your job is to implement it. - done
+    pred_label = inference_agent.single_volume_inference_unpadded(np.array(volume))
+    # TASK: get_predicted_volumes is not complete. Go and complete it - done
+    pred_volumes = get_predicted_volumes(pred_label)
+    # Create and save the report
+    print("Creating and pushing report...")
+    report_save_path = r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section3/out/report"  # - for testing
+    # TASK: create_report is not complete. Go and complete it.
+    # STAND OUT SUGGESTION: save_report_as_dcm has some suggestions if you want to expand your
+    # knowledge of DICOM format
+    report_img = create_report(pred_volumes, header, volume, pred_label)
+    save_report_as_dcm(header, report_img, report_save_path)
+
+    # don't send or delete anything in test
+    if not local_test:
+        # Send report to our storage archive
+        # TASK: Write a command line string that will issue a DICOM C-STORE request to send our report
+        # to our Orthanc server (that runs on port 4242 of the local machine), using storescu tool - done
+        os_command(f"storescu 127.0.0.1 4242 -v -aec report  \"{report_save_path}\" ")
+        # This line will remove the study dir if run as root user
+        # Sleep to let our StoreSCP server process the report (remember - in our setup
+        # the main archive is routing everyting that is sent to it, including our freshly generated
+        # report) - we want to give it time to save before cleaning it up
+        time.sleep(2)
+        shutil.rmtree(study_dir, onerror=lambda f, p, e: print(f"Error deleting: {e[1]}"))
+        print(f"Inference successful on {header['SOPInstanceUID'].value}, out: {pred_label.shape}",
+              f"volume ant: {pred_volumes['anterior']}, ",
+              f"volume post: {pred_volumes['posterior']}, total volume: {pred_volumes['total']}")
+
+
 if __name__ == "__main__":
     # This code expects a single command line argument with link to the directory containing
     # routed studies
@@ -266,55 +318,6 @@ if __name__ == "__main__":
         print("You should supply one command line argument pointing to the routing folder. Exiting.")
         sys.exit()
 
-    # Find all subdirectories within the supplied directory. We assume that
-    # one subdirectory contains a full study
-    subdirs = [os.path.join(sys.argv[1], d) for d in os.listdir(sys.argv[1]) if
-                os.path.isdir(os.path.join(sys.argv[1], d))]
+    routing_folder = sys.argv[1]
 
-    # Get the latest directory
-    study_dir = sorted(subdirs, key=lambda dir: os.stat(dir).st_mtime, reverse=True)[0]
-
-    print(f"Looking for series to run inference on in directory {study_dir}...")
-
-    # TASK: get_series_for_inference is not complete. Go and complete it - done
-    volume, header = load_dicom_volume_as_numpy_from_list(get_series_for_inference(study_dir))
-    print(f"Found series of {volume.shape[2]} axial slices")
-
-    print("HippoVolume.AI: Running inference...")
-    # TASK: Use the UNetInferenceAgent class and model parameter file from the previous section - done
-    inference_agent = UNetInferenceAgent(
-        device="cpu",
-        parameter_file_path=r"/home/mkirmse/dev-host/projects/udacity/nd320-c3-3d-imaging-starter/section2/out/2020-12-21_1056_Basic_unet/model.pth")
-
-    # Run inference
-    # TASK: single_volume_inference_unpadded takes a volume of arbitrary size 
-    # and reshapes y and z dimensions to the patch size used by the model before 
-    # running inference. Your job is to implement it. - done
-    pred_label = inference_agent.single_volume_inference_unpadded(np.array(volume))
-    # TASK: get_predicted_volumes is not complete. Go and complete it - done
-    pred_volumes = get_predicted_volumes(pred_label)
-
-    # Create and save the report
-    print("Creating and pushing report...")
-    report_save_path = r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section3/out/report" # - for testing
-    # TASK: create_report is not complete. Go and complete it.
-    # STAND OUT SUGGESTION: save_report_as_dcm has some suggestions if you want to expand your
-    # knowledge of DICOM format
-    report_img = create_report(pred_volumes, header, volume, pred_label)
-    save_report_as_dcm(header, report_img, report_save_path)
-
-    # Send report to our storage archive
-    # TASK: Write a command line string that will issue a DICOM C-STORE request to send our report
-    # to our Orthanc server (that runs on port 4242 of the local machine), using storescu tool - done
-    os_command(f"storescu 127.0.0.1 4242 -v -aec report  \"{report_save_path}\" ")
-
-    # This line will remove the study dir if run as root user
-    # Sleep to let our StoreSCP server process the report (remember - in our setup
-    # the main archive is routing everyting that is sent to it, including our freshly generated
-    # report) - we want to give it time to save before cleaning it up
-    time.sleep(2)
-    shutil.rmtree(study_dir, onerror=lambda f, p, e: print(f"Error deleting: {e[1]}"))
-
-    print(f"Inference successful on {header['SOPInstanceUID'].value}, out: {pred_label.shape}",
-          f"volume ant: {pred_volumes['anterior']}, ",
-          f"volume post: {pred_volumes['posterior']}, total volume: {pred_volumes['total']}")
+    run_inference(routing_folder)
