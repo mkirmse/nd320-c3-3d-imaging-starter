@@ -1,0 +1,10 @@
+# clone repo in workspace
+
+# start listener
+root@83299a9f8874:/home/workspace/nd320-c3-3d-imaging-starter/section3/src/deploy_scripts# storescp 106 -v -aet HIPPOAI -od ../../out/dicom_route --sort-on-study-uid st
+
+# run inference
+root@83299a9f8874:/home/workspace/nd320-c3-3d-imaging-starter/section3/src# PYTHONPATH="../../section2/src/:.:.." ipython inference_dcm.py ../out/dicom_route
+
+# send result
+root@83299a9f8874:/home/workspace/nd320-c3-3d-imaging-starter/section3/src# storescu 127.0.0.1 4242 -v -aec HIPPOAI ../out/report.dcm
