@@ -25,7 +25,7 @@ from PIL import ImageFont
 from PIL import ImageDraw
 
 from inference.UNetInferenceAgent import UNetInferenceAgent
-from section3.src.definitions import ROOT_DIR_SEC3
+from definitions import ROOT_DIR_SEC3
 
 
 def load_dicom_volume_as_numpy_from_list(dcmlist):
