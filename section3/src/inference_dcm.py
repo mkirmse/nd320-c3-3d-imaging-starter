@@ -277,7 +277,7 @@ def run_inference(routing_folder : str, local_test: bool = False) -> None:
     # TASK: Use the UNetInferenceAgent class and model parameter file from the previous section - done
     inference_agent = UNetInferenceAgent(
         device="cpu",
-        parameter_file_path=f"{ROOT_DIR_SEC3}/../section2/out/2020-12-21_1051_Basic_unet/model.pth")
+        parameter_file_path=f"{ROOT_DIR_SEC3}/../../section2/out/2020-12-21_1051_Basic_unet/model.pth")
     # Run inference
     # TASK: single_volume_inference_unpadded takes a volume of arbitrary size
     # and reshapes y and z dimensions to the patch size used by the model before
@@ -287,7 +287,7 @@ def run_inference(routing_folder : str, local_test: bool = False) -> None:
     pred_volumes = get_predicted_volumes(pred_label)
     # Create and save the report
     print("Creating and pushing report...")
-    report_save_path = r"/home/matthias/projects/udacity/nd320-c3-3d-imaging-starter/section3/out/report.dcm"  # - for testing
+    report_save_path = f"{ROOT_DIR_SEC3}/../out/report.dcm"  # - for testing
     # TASK: create_report is not complete. Go and complete it.
     # STAND OUT SUGGESTION: save_report_as_dcm has some suggestions if you want to expand your
     # knowledge of DICOM format
